@@ -9,13 +9,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Note
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.indivassignment5q2.ui.theme.IndivAssignment5Q2Theme
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,10 +91,43 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DailyHubApp(viewModel: DailyHubViewModel) {
     val navController = rememberNavController()
-    Scaffold {
-        innerPadding ->
+    Scaffold(
+        bottomBar = { AppBottomNavigation(navController = navController) }
+    ) { innerPadding ->
         // The NavHost will go here in a future step.
         Text("App Skeleton", modifier = Modifier.padding(innerPadding))
+    }
+}
+
+@Composable
+fun AppBottomNavigation(navController: NavHostController) {
+    val items = listOf(Routes.Notes, Routes.Tasks, Routes.Calendar)
+    NavigationBar {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
+
+        items.forEach { screen ->
+            NavigationBarItem(
+                icon = { Icon(screen.icon, contentDescription = screen.label) },
+                label = { Text(screen.label) },
+                selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
+                onClick = {
+                    navController.navigate(screen.route) {
+                        // Pop up to the start destination of the graph to
+                        // avoid building up a large stack of destinations
+                        // on the back stack as users select items
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        // Avoid multiple copies of the same destination when
+                        // reselecting the same item
+                        launchSingleTop = true
+                        // Restore state when reselecting a previously selected item
+                        restoreState = true
+                    }
+                }
+            )
+        }
     }
 }
 
