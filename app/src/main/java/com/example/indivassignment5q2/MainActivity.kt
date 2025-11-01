@@ -4,6 +4,9 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -23,6 +26,8 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.indivassignment5q2.ui.theme.IndivAssignment5Q2Theme
@@ -30,11 +35,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-//Data Models
+// --- Data Models ---
 data class Note(val id: Int, val content: String)
 data class Task(val id: Int, val description: String, var isCompleted: Boolean)
 
-//ViewModel
+// --- ViewModel ---
 class DailyHubViewModel : ViewModel() {
     private val _notes = MutableStateFlow<List<Note>>(emptyList())
     val notes = _notes.asStateFlow()
@@ -69,7 +74,7 @@ class DailyHubViewModel : ViewModel() {
     }
 }
 
-// Navigation Routes
+// --- Navigation Routes ---
 sealed class Routes(val route: String, val label: String, val icon: ImageVector) {
     object Notes : Routes("notes", "Notes", Icons.Default.Note)
     object Tasks : Routes("tasks", "Tasks", Icons.Default.List)
@@ -94,8 +99,11 @@ fun DailyHubApp(viewModel: DailyHubViewModel) {
     Scaffold(
         bottomBar = { AppBottomNavigation(navController = navController) }
     ) { innerPadding ->
-        // The NavHost will go here in a future step.
-        Text("App Skeleton", modifier = Modifier.padding(innerPadding))
+        AppNavHost(
+            navController = navController,
+            viewModel = viewModel,
+            modifier = Modifier.padding(innerPadding)
+        )
     }
 }
 
@@ -130,6 +138,32 @@ fun AppBottomNavigation(navController: NavHostController) {
         }
     }
 }
+
+@Composable
+fun AppNavHost(
+    navController: NavHostController,
+    viewModel: DailyHubViewModel,
+    modifier: Modifier = Modifier
+) {
+    NavHost(
+        navController = navController,
+        startDestination = Routes.Notes.route,
+        modifier = modifier,
+        enterTransition = { fadeIn(animationSpec = tween(300)) },
+        exitTransition = { fadeOut(animationSpec = tween(300)) }
+    ) {
+        composable(Routes.Notes.route) {
+            Text("Notes Screen")
+        }
+        composable(Routes.Tasks.route) {
+            Text("Tasks Screen")
+        }
+        composable(Routes.Calendar.route) {
+            Text("Calendar Screen")
+        }
+    }
+}
+
 
 @Preview(showBackground = true)
 @Composable
