@@ -4,20 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Note
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.ViewModel
+import androidx.navigation.compose.rememberNavController
 import com.example.indivassignment5q2.ui.theme.IndivAssignment5Q2Theme
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-//Data Models
+// --- Data Models ---
 data class Note(val id: Int, val content: String)
 data class Task(val id: Int, val description: String, var isCompleted: Boolean)
 
-// ViewModel
+// --- ViewModel ---
 class DailyHubViewModel : ViewModel() {
     private val _notes = MutableStateFlow<List<Note>>(emptyList())
     val notes = _notes.asStateFlow()
@@ -52,6 +61,12 @@ class DailyHubViewModel : ViewModel() {
     }
 }
 
+// --- Navigation Routes ---
+sealed class Routes(val route: String, val label: String, val icon: ImageVector) {
+    object Notes : Routes("notes", "Notes", Icons.Default.Note)
+    object Tasks : Routes("tasks", "Tasks", Icons.Default.List)
+    object Calendar : Routes("calendar", "Calendar", Icons.Default.DateRange)
+}
 
 class MainActivity : ComponentActivity() {
     private val viewModel: DailyHubViewModel by viewModels()
@@ -59,10 +74,19 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             IndivAssignment5Q2Theme {
-                // The main app composable will go here.
-                Text("My Daily Hub")
+                DailyHubApp(viewModel = viewModel)
             }
         }
+    }
+}
+
+@Composable
+fun DailyHubApp(viewModel: DailyHubViewModel) {
+    val navController = rememberNavController()
+    Scaffold {
+        innerPadding ->
+        // The NavHost will go here in a future step.
+        Text("App Skeleton", modifier = Modifier.padding(innerPadding))
     }
 }
 
@@ -70,6 +94,6 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun DefaultPreview() {
     IndivAssignment5Q2Theme {
-        Text("My Daily Hub")
+        DailyHubApp(viewModel = DailyHubViewModel())
     }
 }
