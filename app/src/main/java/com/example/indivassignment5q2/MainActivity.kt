@@ -8,6 +8,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -15,10 +16,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Note
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -32,6 +34,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
@@ -91,7 +94,7 @@ class DailyHubViewModel : ViewModel() {
 // --- Navigation Routes ---
 sealed class Routes(val route: String, val label: String, val icon: ImageVector) {
     object Notes : Routes("notes", "Notes", Icons.Default.Note)
-    object Tasks : Routes("tasks", "Tasks", Icons.Default.List)
+    object Tasks : Routes("tasks", "Tasks", Icons.AutoMirrored.Filled.List)
     object Calendar : Routes("calendar", "Calendar", Icons.Default.DateRange)
 }
 
@@ -162,7 +165,7 @@ fun AppNavHost(
             NotesScreen(viewModel = viewModel)
         }
         composable(Routes.Tasks.route) {
-            Text("Tasks Screen")
+            TasksScreen(viewModel = viewModel)
         }
         composable(Routes.Calendar.route) {
             Text("Calendar Screen")
@@ -200,6 +203,30 @@ fun NotesScreen(viewModel: DailyHubViewModel) {
         LazyColumn {
             items(notes) { note ->
                 Text(note.content, modifier = Modifier.padding(vertical = 8.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun TasksScreen(viewModel: DailyHubViewModel) {
+    val tasks by viewModel.tasks.collectAsState()
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("My Tasks", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(16.dp))
+        LazyColumn {
+            items(tasks) { task ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = task.isCompleted,
+                        onCheckedChange = { viewModel.toggleTask(task.id) }
+                    )
+                    Text(task.description)
+                }
             }
         }
     }
