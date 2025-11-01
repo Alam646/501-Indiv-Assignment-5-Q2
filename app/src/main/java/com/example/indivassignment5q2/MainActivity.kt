@@ -7,21 +7,35 @@ import androidx.activity.viewModels
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Note
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -121,16 +135,8 @@ fun AppBottomNavigation(navController: NavHostController) {
                 selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                 onClick = {
                     navController.navigate(screen.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items
-                        popUpTo(navController.graph.findStartDestination().id) {
-                            saveState = true
-                        }
-                        // Avoid multiple copies of the same destination when
-                        // reselecting the same item
+                        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                         launchSingleTop = true
-                        // Restore state when reselecting a previously selected item
                         restoreState = true
                     }
                 }
@@ -153,13 +159,48 @@ fun AppNavHost(
         exitTransition = { fadeOut(animationSpec = tween(300)) }
     ) {
         composable(Routes.Notes.route) {
-            Text("Notes Screen")
+            NotesScreen(viewModel = viewModel)
         }
         composable(Routes.Tasks.route) {
             Text("Tasks Screen")
         }
         composable(Routes.Calendar.route) {
             Text("Calendar Screen")
+        }
+    }
+}
+
+@Composable
+fun NotesScreen(viewModel: DailyHubViewModel) {
+    val notes by viewModel.notes.collectAsState()
+    var newNoteContent by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("My Notes", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(16.dp))
+        OutlinedTextField(
+            value = newNoteContent,
+            onValueChange = { newNoteContent = it },
+            label = { Text("New note") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = {
+                if (newNoteContent.isNotBlank()) {
+                    viewModel.addNote(newNoteContent)
+                    newNoteContent = ""
+                }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Add Note")
+        }
+        Spacer(Modifier.height(16.dp))
+        LazyColumn {
+            items(notes) { note ->
+                Text(note.content, modifier = Modifier.padding(vertical = 8.dp))
+            }
         }
     }
 }
