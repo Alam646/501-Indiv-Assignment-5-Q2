@@ -1,6 +1,5 @@
 package com.example.indivassignment5q2.ui.theme
 
-import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -10,26 +9,27 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 
+// New color schemes with the warm, dark palette
 private val DarkColorScheme = darkColorScheme(
-    primary = Teal,
-    secondary = LightNavy,
-    background = Navy,
-    surface = LightNavy,
-    onPrimary = Navy,
+    primary = DeepRed,
+    secondary = MidBrown,
+    background = DarkBrown,
+    surface = MidBrown,
+    onPrimary = Cream,
     onSecondary = Cream,
     onBackground = Cream,
     onSurface = Cream
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Teal,
-    secondary = LightNavy,
-    background = Cream,
-    surface = LightestNavy,
-    onPrimary = Navy,
-    onSecondary = Cream,
-    onBackground = Navy,
-    onSurface = Navy
+    primary = DeepRed,
+    secondary = MidBrown,
+    background = OffWhite,
+    surface = Cream,
+    onPrimary = OffWhite,
+    onSecondary = OffWhite,
+    onBackground = DarkBrown,
+    onSurface = DarkBrown
 )
 
 val AppShapes = Shapes(
