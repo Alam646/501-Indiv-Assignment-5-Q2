@@ -18,7 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Note
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
@@ -52,13 +52,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-// --- Data Models ---
-data class Note(val id: Int, val content: String)
+//Data Models
+data class NoteItem(val id: Int, val content: String)
 data class Task(val id: Int, val description: String, var isCompleted: Boolean)
 
-// --- ViewModel ---
+//ViewModel
+// The ViewModel holds the app's state, surviving screen rotations.
 class DailyHubViewModel : ViewModel() {
-    private val _notes = MutableStateFlow<List<Note>>(emptyList())
+    private val _notes = MutableStateFlow<List<NoteItem>>(emptyList())
+    // A public, read-only flow for the UI to observe state changes safely.
     val notes = _notes.asStateFlow()
 
     private val _tasks = MutableStateFlow<List<Task>>(emptyList())
@@ -66,16 +68,16 @@ class DailyHubViewModel : ViewModel() {
 
     init {
         // Add some initial data for demonstration
-        _notes.value = listOf(Note(1, "Don't forget the meeting at 3 PM."))
+        _notes.value = listOf(NoteItem(1, "Don't forget CS501 at 6:30PM."))
         _tasks.value = listOf(
-            Task(1, "Buy groceries", false),
-            Task(2, "Finish assignment", true)
+            Task(1, "Go to the gym", false),
+            Task(2, "Finish hw", true)
         )
     }
 
     fun addNote(content: String) {
         val newId = (_notes.value.maxOfOrNull { it.id } ?: 0) + 1
-        _notes.update { it + Note(newId, content) }
+        _notes.update { it + NoteItem(newId, content) }
     }
 
     fun toggleTask(taskId: Int) {
@@ -91,14 +93,16 @@ class DailyHubViewModel : ViewModel() {
     }
 }
 
-// --- Navigation Routes ---
+//Navigation Routes
+// A sealed class provides type-safe navigation, preventing route typos.
 sealed class Routes(val route: String, val label: String, val icon: ImageVector) {
-    object Notes : Routes("notes", "Notes", Icons.Default.Note)
+    object Notes : Routes("notes", "Notes", Icons.Default.Edit)
     object Tasks : Routes("tasks", "Tasks", Icons.AutoMirrored.Filled.List)
     object Calendar : Routes("calendar", "Calendar", Icons.Default.DateRange)
 }
 
 class MainActivity : ComponentActivity() {
+    // `by viewModels()` ties the ViewModel to the Activity's lifecycle.
     private val viewModel: DailyHubViewModel by viewModels()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -112,6 +116,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun DailyHubApp(viewModel: DailyHubViewModel) {
+    // `rememberNavController` creates a persistent NavController for the app.
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { AppBottomNavigation(navController = navController) }
@@ -128,6 +133,7 @@ fun DailyHubApp(viewModel: DailyHubViewModel) {
 fun AppBottomNavigation(navController: NavHostController) {
     val items = listOf(Routes.Notes, Routes.Tasks, Routes.Calendar)
     NavigationBar {
+        // Observes the back stack to highlight the currently selected item.
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentDestination = navBackStackEntry?.destination
 
@@ -138,8 +144,12 @@ fun AppBottomNavigation(navController: NavHostController) {
                 selected = currentDestination?.hierarchy?.any { it.route == screen.route } == true,
                 onClick = {
                     navController.navigate(screen.route) {
+                        // These options ensure a clean navigation history.
+                        // `popUpTo` avoids building up a large stack of destinations.
                         popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                        // `launchSingleTop` prevents creating a new screen if it's already visible.
                         launchSingleTop = true
+                        // `restoreState` restores the UI state (like scroll position) on re-selection.
                         restoreState = true
                     }
                 }
@@ -175,7 +185,9 @@ fun AppNavHost(
 
 @Composable
 fun NotesScreen(viewModel: DailyHubViewModel) {
+    // `collectAsState` makes the UI react to changes in the ViewModel's state.
     val notes by viewModel.notes.collectAsState()
+    // `remember` preserves UI state (like text field input) across recompositions.
     var newNoteContent by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(16.dp)) {
