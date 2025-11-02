@@ -168,7 +168,7 @@ fun AppNavHost(
             TasksScreen(viewModel = viewModel)
         }
         composable(Routes.Calendar.route) {
-            Text("Calendar Screen")
+            CalendarScreen()
         }
     }
 }
@@ -229,6 +229,15 @@ fun TasksScreen(viewModel: DailyHubViewModel) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun CalendarScreen() {
+    Column(modifier = Modifier.padding(16.dp)) {
+        Text("My Calendar", style = MaterialTheme.typography.headlineMedium)
+        Spacer(Modifier.height(16.dp))
+        Text("This is where a calendar view will be implemented.")
     }
 }
 
